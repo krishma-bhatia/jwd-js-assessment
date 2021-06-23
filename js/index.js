@@ -21,10 +21,15 @@
 
 window.addEventListener('DOMContentLoaded', () => {
   const start = document.querySelector('#start');
+  let timerId = 0;//used in calculateScore, reset and startTimer f'ns
   start.addEventListener('click', function (e) {
     document.querySelector('#quizBlock').style.display = 'block';
     start.style.display = 'none';
+    document.querySelector("#btnSubmit").disabled = false;
+    document.getElementById('time').innerHTML =  1 + ":" + 00;
+    startTimer();
   });
+ 
   // quizArray QUESTIONS & ANSWERS
   // q = QUESTION, o = OPTIONS, a = CORRECT ANSWER
   // Basic ideas from https://code-boxx.com/simple-javascript-quiz/
@@ -42,6 +47,16 @@ window.addEventListener('DOMContentLoaded', () => {
     {
       q: 'What is the capital of Australia',
       o: ['Sydney', 'Canberra', 'Melbourne', 'Perth'],
+      a: 1,
+    },
+    {
+      q: 'How many planets are there in Solar System',
+      o: ['5', '6', '7', '8'],
+      a: 3,
+    },
+    {
+      q: 'Which is the largest planet in the solar system',
+      o: ['Saturn', 'Jupiter', 'Pluto', 'Mars'],
       a: 1,
     },
   ];
@@ -66,8 +81,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // Calculate the score
   const calculateScore = () => {
     let score = 0;
+   
     quizArray.map((quizItem, index) => {
       for (let i = 0; i < 4; i++) {
+        
         //highlight the li if it is the correct answer
         let li = `li_${index}_${i}`;
         let r = `radio_${index}_${i}`;
@@ -76,15 +93,71 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (quizItem.a == i) {
           //change background color of li element here
-        }
+          liElement.style.backgroundColor = "hsla(120, 100%, 75%, 0.3)";
+        
 
         if (radioElement.checked) {
           // code for task 1 goes here
+         
+           score++;
+          
         }
       }
+      }
     });
-  };
+    
+    let scoreSpan = document.querySelector("#score");
+    scoreSpan.innerHTML = `Score: ${score}/${quizArray.length}`;
+    document.querySelector("#btnSubmit").disabled = true;
+    clearTimeout(timerId);//stoptimer;
 
+  };
+  let btnSubmit = document.querySelector("#btnSubmit");
+  btnSubmit.addEventListener('click',calculateScore);
+  //timer function 
+  function startTimer(){
+    let nowTime = document.getElementById("time").innerHTML;
+    let timeArray = nowTime.split(/[:]+/);//array of min and sec
+    let min = timeArray[0];
+    let sec = timeArray[1]-1;
+    if(sec<0){ //change of minute
+      sec = 59;
+      min -= 1;
+    }else if(sec<10){//to add 0 to display in case of single-digit seconds
+      sec = "0" + sec;
+    }
+    
+    document.getElementById('time').innerHTML = min + ":" + sec;
+    
+    if((min === '0') &&(sec === '00')) //timer expired
+    {
+      document.getElementById('time').style.color = "red";
+      document.getElementById('time').innerHTML += ` Timer Expired!!`;
+      calculateScore();
+      return;
+    }
+  
+  timerId = setTimeout(startTimer, 1000);
+  }
   // call the displayQuiz function
   displayQuiz();
+
+  //reset button will display start card
+  document.getElementById("btnReset").addEventListener('click', () => {
+    let liArray = document.getElementsByClassName("list-group-item");
+    
+    for(let li of liArray) //clear selections
+    {
+      li.style.backgroundColor = "";
+      li.childNodes[0].checked = false;
+    }
+    clearTimeout(timerId);//stoptimer;
+    document.getElementById('time').style.color = "";
+    document.querySelector("#score").innerHTML = "";
+    document.querySelector("#btnSubmit").disabled = false;
+    document.querySelector('#quizBlock').style.display = 'none';
+    start.style.display = 'block';
+
+    
+  });
 });
